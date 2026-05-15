@@ -41,7 +41,7 @@
     <script>
         async function main() {
             try {
-                // 1. 初始化 LIFF (已填入您的專屬 ID)
+                // 1. 初始化 LIFF
                 await liff.init({ liffId: "2010093189-pwRxLI6o" }); 
                 
                 // 2. 確認是否已登入 LINE
@@ -50,9 +50,14 @@
                     return;
                 }
 
-                // 3. 讀取同一層目錄下的 daily_report.json (n8n 產生的資料)
-                // ⚠️ 注意：這裡假設您的 json 檔名為 daily_report.json，且與 index.html 放在同一個 GitHub 資料夾
-                const currentUrl = window.location.href.split('?')[0]; 
+                // 3. 🛡️ 修正版：防呆路徑解析邏輯
+                let currentUrl = window.location.href.split('?')[0]; 
+                
+                // 如果網址不是以 / 或 .html 結尾（例如直接連到 repo 名稱），自動補上 / 避免路徑解析錯誤
+                if (!currentUrl.endsWith('/') && !currentUrl.endsWith('.html')) {
+                    currentUrl += '/';
+                }
+                
                 const baseUrl = currentUrl.substring(0, currentUrl.lastIndexOf('/'));
                 const jsonUrl = `${baseUrl}/daily_report.json`;
                 
@@ -60,7 +65,7 @@
                 const response = await fetch(`${jsonUrl}?t=${new Date().getTime()}`);
                 
                 if (!response.ok) {
-                    throw new Error("無法讀取最新的日報資料");
+                    throw new Error(`HTTP 錯誤碼: ${response.status}，請確認 daily_report.json 是否已存在於 GitHub。`);
                 }
                 
                 const flexJson = await response.json();
@@ -76,10 +81,8 @@
                     ]);
                     
                     if (res) {
-                        // 分享成功，關閉視窗
                         liff.closeWindow(); 
                     } else {
-                        // 使用者取消分享，關閉視窗
                         liff.closeWindow();
                     }
                 } else {
@@ -88,12 +91,11 @@
                 }
             } catch (error) {
                 console.error(error);
-                alert("讀取今日日報失敗或發生錯誤。請確認 n8n 是否已成功產出資料。");
+                alert(`發生錯誤：\n${error.message}\n\n請確認 n8n 是否已成功產出資料。`);
                 liff.closeWindow();
             }
         }
 
-        // 啟動主程式
         main();
     </script>
 </body>
