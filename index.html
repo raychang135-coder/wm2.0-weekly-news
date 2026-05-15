@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>財管2.0 新聞日報分享</title>
+    <title>財管2.0 新聞週報分享</title>
     <!-- 引入 LINE LIFF SDK -->
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
@@ -35,7 +35,7 @@
 <body>
 
     <div class="loader"></div>
-    <h2>準備分享今日日報...</h2>
+    <h2>準備分享財管2.0新聞週報...</h2>
     <p>請稍候，即將載入好友清單</p>
 
     <script>
@@ -75,7 +75,7 @@
                     const res = await liff.shareTargetPicker([
                         {
                             "type": "flex",
-                            "altText": "財管2.0新聞日報",
+                            "altText": "財管2.0新聞週報",
                             "contents": flexJson
                         }
                     ]);
