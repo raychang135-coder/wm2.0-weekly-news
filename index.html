@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>財管2.0 新聞日報分享</title>
+    <!-- 引入 LINE LIFF SDK -->
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #ffffff;
+            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+            text-align: center;
+            padding-top: 20vh;
+            margin: 0;
+        }
+        .loader {
+            border: 4px solid #1e293b;
+            border-top: 4px solid #C5A059;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        h2 { margin-bottom: 10px; color: #E6D08E; }
+        p { color: #94a3b8; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <div class="loader"></div>
+    <h2>準備分享今日日報...</h2>
+    <p>請稍候，即將載入好友清單</p>
+
+    <script>
+        async function main() {
+            try {
+                // 1. 初始化 LIFF (已填入您的專屬 ID)
+                await liff.init({ liffId: "2010093189-pwRxLI6o" }); 
+                
+                // 2. 確認是否已登入 LINE
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                    return;
+                }
+
+                // 3. 讀取同一層目錄下的 daily_report.json (n8n 產生的資料)
+                // ⚠️ 注意：這裡假設您的 json 檔名為 daily_report.json，且與 index.html 放在同一個 GitHub 資料夾
+                const currentUrl = window.location.href.split('?')[0]; 
+                const baseUrl = currentUrl.substring(0, currentUrl.lastIndexOf('/'));
+                const jsonUrl = `${baseUrl}/daily_report.json`;
+                
+                // 加上時間戳記防止 GitHub Pages 快取舊資料
+                const response = await fetch(`${jsonUrl}?t=${new Date().getTime()}`);
+                
+                if (!response.ok) {
+                    throw new Error("無法讀取最新的日報資料");
+                }
+                
+                const flexJson = await response.json();
+
+                // 4. 喚起分享清單
+                if (liff.isApiAvailable('shareTargetPicker')) {
+                    const res = await liff.shareTargetPicker([
+                        {
+                            "type": "flex",
+                            "altText": "財管2.0新聞日報",
+                            "contents": flexJson
+                        }
+                    ]);
+                    
+                    if (res) {
+                        // 分享成功，關閉視窗
+                        liff.closeWindow(); 
+                    } else {
+                        // 使用者取消分享，關閉視窗
+                        liff.closeWindow();
+                    }
+                } else {
+                    alert("您的 LINE 版本不支援此分享功能，請更新 LINE App。");
+                    liff.closeWindow();
+                }
+            } catch (error) {
+                console.error(error);
+                alert("讀取今日日報失敗或發生錯誤。請確認 n8n 是否已成功產出資料。");
+                liff.closeWindow();
+            }
+        }
+
+        // 啟動主程式
+        main();
+    </script>
+</body>
+</html>
